@@ -1,0 +1,14 @@
+{
+  "public-ip": "192.168.10.2",
+  "port": 8400,
+  "users-map": {
+    "admin": "admi22n"
+  },
+  "realm": "kerry",
+  "log-console": true,
+  "log-file": true,
+  "log-file-path": "webrtc-turn-server.log",
+  "multi-thread": false,
+  "thread-count": 0,
+  "socket-type": "tcp,udp"
+}
