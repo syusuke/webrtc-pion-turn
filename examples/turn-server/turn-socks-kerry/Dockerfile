@@ -1,0 +1,22 @@
+FROM golang:latest as builder
+ENV GOPROXY https://goproxy.cn
+RUN git clone https://github.com/pion/turn.git --depth 1 /kerry-turn-server
+RUN mkdir -p /kerry-turn-server/examples/turn-server/turn-socks-kerry
+RUN cd /kerry-turn-server && go get
+COPY ./* /kerry-turn-server/examples/turn-server/turn-socks-kerry
+WORKDIR /kerry-turn-server/examples/turn-server/turn-socks-kerry
+RUN go build -o turn-server
+RUN mv /kerry-turn-server/examples/turn-server/turn-socks-kerry/turn-server /kerry-turn-server/turn-server
+
+
+FROM ubuntu:latest
+ENV PUBLIC_IP 127.0.0.1
+ENV PORT 3478
+ENV USERS admin=admin123
+ENV SOCKET_TYPE tcp,udp
+ENV REALM kerry
+WORKDIR /root/turn-server
+COPY --from=builder /kerry-turn-server/turn-server turn-server
+RUN chmod +x turn-server
+CMD ./turn-server -public-ip $PUBLIC_IP -port $PORT -users=$USERS -realm=$REALM -socket-type=$SOCKET_TYPE
+

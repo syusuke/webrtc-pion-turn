@@ -14,6 +14,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -46,7 +47,13 @@ var configuration = &Configuration{
 
 func loadConfig() {
 	configPath := flag.String("config", "", "Json config file path.")
+	publicIP := flag.String("public-ip", "", "IP Address that TURN can be contacted by.")
+	port := flag.Int("port", -1, "Listening port.")
+	realm := flag.String("realm", "kerry", "Realm (defaults to \"kerry\")")
+	users := flag.String("users", "", "List of username and password (e.g. \"user=pass,user=pass\")")
+	socketType := flag.String("socket-type", "", "support socket type (e.g. \"tcp; udp; tcp,udp\")")
 	flag.Parse()
+
 	if len(*configPath) > 0 {
 		jsonConfigFile, err := os.Open(*configPath)
 		defer func(configFile *os.File) {
@@ -66,6 +73,28 @@ func loadConfig() {
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	if configuration.UsersMap == nil {
+		configuration.UsersMap = make(map[string]string)
+	}
+	// over write config
+	if len(*publicIP) > 0 {
+		configuration.PublicIp = *publicIP
+	}
+	if *port > 0 {
+		configuration.Port = *port
+	}
+	if len(*realm) > 0 {
+		configuration.Realm = *realm
+	}
+	if len(*users) > 0 {
+		for _, kv := range regexp.MustCompile(`(\w+)=(\w+)`).FindAllStringSubmatch(*users, -1) {
+			configuration.UsersMap[kv[1]] = kv[2]
+		}
+	}
+	if len(*socketType) > 0 {
+		configuration.SocketType = *socketType
 	}
 }
 
